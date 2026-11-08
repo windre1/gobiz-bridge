@@ -1,0 +1,15 @@
+# Real configuration and secrets — never commit these
+wrangler.toml
+.env
+.env.*
+!.env.example
+.bridge-secrets.json
+*secrets*.json
+TRIO-*.txt
+
+# Runtime / tooling
+node_modules/
+.wrangler/
+__pycache__/
+*.pyc
+.DS_Store

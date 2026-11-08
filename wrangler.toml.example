@@ -1,0 +1,41 @@
+# gobiz-bridge — Cloudflare Worker (payload QRIS per-merchant)
+# Deploy: lihat README-DEPLOY.md. File ini TIDAK memuat secret apa pun.
+
+name = "gobiz-bridge"
+main = "src/index.js"
+compatibility_date = "2025-04-01"
+
+# Polling pencocokan transaksi: tiap 1 menit.
+# Worker langsung selesai tanpa menyentuh Gojek bila tidak ada invoice
+# pending dan tidak ada retry callback yang jatuh tempo.
+[triggers]
+crons = ["*/1 * * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "gobiz-bridge"
+database_id = "PLACEHOLDER-isi-dengan-id-D1-saat-deploy"
+
+[vars]
+# Versi build portal GoFood Merchant untuk header X-AppVersion.
+# Build portal terus bergerak dan build basi bisa kena version-gate
+# senyap — perbarui nilai ini (tanpa ubah kode) bila portal naik versi.
+GOBIZ_APP_VERSION = "platform-v3.128.0-a941d748"
+# URL callback merchant default (demo-store). Di v2 nilai ini hanya
+# FALLBACK: callback_url otoritatif per merchant ada di tabel D1
+# `merchants`. Nilai var ini tetap dipertahankan persis seperti v1
+# supaya jalur fallback env untuk demo-store tidak berubah.
+CALLBACK_URL = "https://example.com/api/webhook"
+
+# SECRETS — JANGAN tulis nilainya di sini. Isi lewat dashboard Cloudflare
+# (Workers & Pages → gobiz-bridge → Settings → Variables and Secrets)
+# atau `wrangler secret put <NAMA>`:
+#   GOBIZ_EMAIL            email login portal GoBiz (identitas outlet BERSAMA semua merchant)
+#   GOBIZ_PASSWORD         kata sandi portal GoBiz
+#   BRIDGE_API_KEY         nilai X-API-Key demo-store (FALLBACK env v2; nilai otoritatif kini baris D1 'demo-store')
+#   BRIDGE_API_SECRET      secret tanda tangan request demo-store (fallback yang sama)
+#   BRIDGE_CALLBACK_SECRET secret tanda tangan callback demo-store (fallback yang sama)
+#   STATIC_QRIS_PAYLOAD    payload EMV QRIS statis outlet ASAL (string QRIS apa adanya).
+#                          Sejak v3 nilai ini hanya FALLBACK: merchant dengan outlet
+#                          sendiri menyimpan payload-nya di kolom D1 merchants.qris_payload
+#                          (atur lewat update-payload.py); NULL di kolom itu = pakai env ini.
